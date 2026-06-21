@@ -5,45 +5,40 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch: # Isse aap manually bhi compile button daba sakte hain
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Repository se saari files checkout karna
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    # 2. Arduino CLI tools setup karna
     - name: Setup Arduino CLI
       uses: arduino/setup-arduino-cli@v1
 
-    # 3. ESP32 Core core install karna (Version 2.0.4 ya latest compatible)
     - name: Install ESP32 Platform
       run: |
         arduino-cli core update-index --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
         arduino-cli core install esp32:esp32@2.0.4 --additional-urls https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
 
-    # 4. Display ke liye U8g2 Library install karna
     - name: Install U8g2 Library
       run: |
         arduino-cli lib install "U8g2"
 
-    # 5. Edge Impulse ki .zip library ko extract aur install karna
+    # Yahan hum saari .zip files ko dhoondh kar automatically extract kar rahe hain, naam jo bhi ho!
     - name: Install Edge Impulse ZIP Library
       run: |
-        mkdir -p $HOME/Arduino/libraries
-        unzip -q "ei-msubhan-project-1-arduino-1.0.1-impulse-#1.zip" -d $HOME/Arduino/libraries/MSubhan-project-1_inferencing
+        mkdir -p $HOME/Arduino/libraries/ml_lib
+        unzip -q "*.zip" -d $HOME/Arduino/libraries/ml_lib
 
-    # 6. Sketch folder prepare karna (Arduino CLI ke liye folder aur .ino file ka naam same hona chahiye)
     - name: Prepare Sketch Folder
       run: |
         mkdir -p MyVoiceSketch
         cp "esp32 voice.ino" MyVoiceSketch/MyVoiceSketch.ino
 
-    # 7. Final Code Compilation (ESP32 DevKit V1 target board ke liye)
+    # Compilation step jisme humne library ke andar ke 'src' folder ka direct path de diya hai
     - name: Compile Sketch
       run: |
-        arduino-cli compile --fqbn esp32:esp32:esp32 --libraries $HOME/Arduino/libraries MyVoiceSketch/MyVoiceSketch.ino
+        arduino-cli compile --fqbn esp32:esp32:esp32 --libraries $HOME/Arduino/libraries/ml_lib --libraries $HOME/Arduino/libraries/ml_lib/src MyVoiceSketch/MyVoiceSketch.ino
