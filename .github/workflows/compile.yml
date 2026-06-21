@@ -27,7 +27,6 @@ jobs:
       run: |
         arduino-cli lib install "U8g2"
 
-    # Yahan hum saari .zip files ko dhoondh kar automatically extract kar rahe hain, naam jo bhi ho!
     - name: Install Edge Impulse ZIP Library
       run: |
         mkdir -p $HOME/Arduino/libraries/ml_lib
@@ -38,7 +37,13 @@ jobs:
         mkdir -p MyVoiceSketch
         cp "esp32 voice.ino" MyVoiceSketch/MyVoiceSketch.ino
 
-    # Compilation step jisme humne library ke andar ke 'src' folder ka direct path de diya hai
     - name: Compile Sketch
       run: |
-        arduino-cli compile --fqbn esp32:esp32:esp32 --libraries $HOME/Arduino/libraries/ml_lib --libraries $HOME/Arduino/libraries/ml_lib/src MyVoiceSketch/MyVoiceSketch.ino
+        arduino-cli compile --fqbn esp32:esp32:esp32 --libraries $HOME/Arduino/libraries/ml_lib --libraries $HOME/Arduino/libraries/ml_lib/src --build-path ./build_output MyVoiceSketch/MyVoiceSketch.ino
+
+    # Ye step aapki compiled (.bin) file ko download ke liye ready karega
+    - name: Upload Compiled Binary Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: esp32-voice-assistant-binary
+        path: ./build_output/*.bin
